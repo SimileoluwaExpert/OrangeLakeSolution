@@ -6,9 +6,7 @@ namespace OrangeLakeAPI.Data
     public class OrangeLakeDbContext: DbContext
     {
         public OrangeLakeDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions) { 
-        
-        
-        }
+         }
 
         public DbSet<Difficulty>  Difficulties { get; set; }
 
