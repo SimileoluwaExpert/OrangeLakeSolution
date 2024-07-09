@@ -1,0 +1,6 @@
+@OrangeLakeAPI_HostAddress = http://localhost:5094
+
+GET {{OrangeLakeAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
