@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using OrangeLakeAPI.Data;
 
+
+using OrangeLakeAPI.Models.DTO;
+
 namespace OrangeLakeAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -17,9 +20,23 @@ namespace OrangeLakeAPI.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var regions = dbContext.Regions.ToList();
+            //Get Data From Database - Domain Models
+            var regionDomainModel = dbContext.Regions.ToList();
 
-            return Ok(regions);
+            // Map Domain Models to DTOs
+            var regionsDto = new List<RegionDto>();
+            foreach (var regionDomain in regionDomainModel)
+            {
+                regionsDto.Add(new RegionDto() 
+                { 
+                  Id = regionDomain.Id, 
+                  Name = regionDomain.Name, 
+                  code = regionDomain.code,
+                  RegionImageUrl = regionDomain.RegionImageUrl
+                });
+            }
+            //Return DTOs to Client
+            return Ok(regionsDto);
 
         }
 
@@ -29,13 +46,23 @@ namespace OrangeLakeAPI.Controllers
         [Route("{id:Guid}")]
         public IActionResult GetAllById([FromRoute] Guid id)
         {
-            var regions = dbContext.Regions.FirstOrDefault(x => x.Id == id);
-
-            if (regions == null)
+            //Get Data From Database - Domain Models
+            var regionDomainModel = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            if (regionDomainModel == null)
             {
                 return NotFound();
             }
-            return Ok(regions);
+
+            // Map Domain Models to DTOs
+            var regionsDto = new RegionDto
+            {
+                Id = regionDomainModel.Id,
+                Name = regionDomainModel.Name,
+                code = regionDomainModel.code,
+                RegionImageUrl = regionDomainModel.RegionImageUrl
+            };
+
+            return Ok(regionsDto);
         }
     }
 }
