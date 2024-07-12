@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OrangeLakeAPI.Data;
-
-
+using OrangeLakeAPI.Models.Domains;
 using OrangeLakeAPI.Models.DTO;
 
 namespace OrangeLakeAPI.Controllers
@@ -37,10 +36,7 @@ namespace OrangeLakeAPI.Controllers
             }
             //Return DTOs to Client
             return Ok(regionsDto);
-
         }
-
-
         //GET REGION BY ID
         [HttpGet]
         [Route("{id:Guid}")]
@@ -64,5 +60,88 @@ namespace OrangeLakeAPI.Controllers
 
             return Ok(regionsDto);
         }
+
+        //POST to create New Region
+        [HttpPost]
+        public IActionResult CreateRegion([FromBody] AddRegionRequestDto addRegionRequestDto)
+        {
+            //Map DTO to Domain Model
+            var regionDomainModel = new Region
+            {
+                code = addRegionRequestDto.code,
+                Name = addRegionRequestDto.Name,
+                RegionImageUrl = addRegionRequestDto.RegionImageUrl
+            };
+
+
+            // Use Domian Model to create Region
+            dbContext.Regions.Add(regionDomainModel);
+            dbContext.SaveChanges();
+
+            //Map Domain Model back yo DTO
+            var regionDto = new RegionDto
+            {
+                Id = regionDomainModel.Id,
+                code = regionDomainModel.code,
+                Name = regionDomainModel.Name,
+                RegionImageUrl = regionDomainModel.RegionImageUrl
+            };
+            return CreatedAtAction(nameof(GetAllById), new {id = regionDomainModel.Id}, regionDto);
+        }
+
+        //Update 
+        [HttpPost]
+        [Route("{id:Guid}")]
+        public IActionResult updateRegion([FromRoute] Guid id, [FromBody] UpdateRegionDto updateRegionDto)
+        {
+            //Check if region exists
+            var regionDomainModel = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+
+            if (regionDomainModel == null) {
+                return NotFound();
+                    }
+            //Map DTO to Domain Model
+            regionDomainModel.code = updateRegionDto.code;
+            regionDomainModel.Name = updateRegionDto.Name;
+            regionDomainModel.RegionImageUrl = updateRegionDto.RegionImageUrl;
+
+            dbContext.SaveChanges();
+
+            var regionDto = new RegionDto
+            {
+                Id = regionDomainModel.Id,
+                code = regionDomainModel.code,
+                Name = regionDomainModel.Name,
+                RegionImageUrl = regionDomainModel.RegionImageUrl
+            };
+            return Ok(updateRegionDto);
+        }
+
+        //Delete
+        [HttpDelete]
+        [Route("{id:Guid}")]
+        public IActionResult DeleteRegion([FromRoute] Guid id)
+        {
+            var regionDomainModel = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            if (regionDomainModel == null)
+            {
+            return NotFound(); 
+            };
+
+            //Delete region
+            dbContext.Regions.Remove(regionDomainModel);
+            dbContext.SaveChanges();
+
+            //Return Deleted Region
+            var regionDto = new RegionDto
+            {
+                Id = regionDomainModel.Id,
+                code = regionDomainModel.code,
+                Name = regionDomainModel.Name,
+                RegionImageUrl = regionDomainModel.RegionImageUrl
+            };
+            return Ok(regionDto);
+        }
+
     }
 }
