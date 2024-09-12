@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrangeLakeAPI.Data;
+using OrangeLakeAPI.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<OrangeLakeDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("OrangeLakeConnectionString")) );
+options.UseSqlServer(builder.Configuration.GetConnectionString("OrangeLakeConnectionString")));
+
+builder.Services.AddScoped<IRegionRepository, SQLRegionRepository>();
 
 var app = builder.Build();
 

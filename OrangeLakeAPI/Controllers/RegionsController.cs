@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrangeLakeAPI.Data;
 using OrangeLakeAPI.Models.Domains;
 using OrangeLakeAPI.Models.DTO;
+using OrangeLakeAPI.Repository;
 
 namespace OrangeLakeAPI.Controllers
 {
@@ -11,16 +13,18 @@ namespace OrangeLakeAPI.Controllers
     public class RegionsController : ControllerBase
     {
         private readonly OrangeLakeDbContext dbContext;
+        private readonly  IRegionRepository regionRepository;
 
-        public RegionsController(OrangeLakeDbContext dbContext)
+        public RegionsController(OrangeLakeDbContext dbContext, IRegionRepository regionRepository)
         {
             this.dbContext = dbContext;
+            this.regionRepository = regionRepository;
         }
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
             //Get Data From Database - Domain Models
-            var regionDomainModel = dbContext.Regions.ToList();
+            var regionDomainModel = await regionRepository.GetAllAysnc();
 
             // Map Domain Models to DTOs
             var regionsDto = new List<RegionDto>();
@@ -40,10 +44,10 @@ namespace OrangeLakeAPI.Controllers
         //GET REGION BY ID
         [HttpGet]
         [Route("{id:Guid}")]
-        public IActionResult GetAllById([FromRoute] Guid id)
+        public async Task<IActionResult> GetAllById([FromRoute] Guid id)
         {
             //Get Data From Database - Domain Models
-            var regionDomainModel = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            var regionDomainModel = await dbContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
             if (regionDomainModel == null)
             {
                 return NotFound();
@@ -63,7 +67,7 @@ namespace OrangeLakeAPI.Controllers
 
         //POST to create New Region
         [HttpPost]
-        public IActionResult CreateRegion([FromBody] AddRegionRequestDto addRegionRequestDto)
+        public async Task<IActionResult> CreateRegion([FromBody] AddRegionRequestDto addRegionRequestDto)
         {
             //Map DTO to Domain Model
             var regionDomainModel = new Region
@@ -75,8 +79,8 @@ namespace OrangeLakeAPI.Controllers
 
 
             // Use Domian Model to create Region
-            dbContext.Regions.Add(regionDomainModel);
-            dbContext.SaveChanges();
+            await dbContext.Regions.AddAsync(regionDomainModel);
+            await dbContext.SaveChangesAsync();
 
             //Map Domain Model back yo DTO
             var regionDto = new RegionDto
@@ -92,10 +96,10 @@ namespace OrangeLakeAPI.Controllers
         //Update 
         [HttpPost]
         [Route("{id:Guid}")]
-        public IActionResult updateRegion([FromRoute] Guid id, [FromBody] UpdateRegionDto updateRegionDto)
+        public async Task<IActionResult> updateRegion([FromRoute] Guid id, [FromBody] UpdateRegionDto updateRegionDto)
         {
             //Check if region exists
-            var regionDomainModel = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            var regionDomainModel = await dbContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
 
             if (regionDomainModel == null) {
                 return NotFound();
@@ -105,7 +109,7 @@ namespace OrangeLakeAPI.Controllers
             regionDomainModel.Name = updateRegionDto.Name;
             regionDomainModel.RegionImageUrl = updateRegionDto.RegionImageUrl;
 
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             var regionDto = new RegionDto
             {
@@ -120,9 +124,9 @@ namespace OrangeLakeAPI.Controllers
         //Delete
         [HttpDelete]
         [Route("{id:Guid}")]
-        public IActionResult DeleteRegion([FromRoute] Guid id)
+        public async Task<IActionResult> DeleteRegion([FromRoute] Guid id)
         {
-            var regionDomainModel = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            var regionDomainModel = await dbContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
             if (regionDomainModel == null)
             {
             return NotFound(); 
